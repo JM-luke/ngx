@@ -1,6 +1,6 @@
 import { ModuleWithProviders, NgModule, Optional, SkipSelf } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NbAuthModule, NbDummyAuthStrategy } from '@nebular/auth';
+import { NbAuthModule, NbDummyAuthStrategy, NbPasswordAuthStrategy, NbAuthJWTToken } from '@nebular/auth';
 import { NbSecurityModule, NbRoleProvider } from '@nebular/security';
 import { of as observableOf } from 'rxjs';
 
@@ -43,19 +43,49 @@ export const NB_CORE_PROVIDERS = [
   ...NbAuthModule.forRoot({
 
     strategies: [
-      NbDummyAuthStrategy.setup({
-        name: 'email',
-        delay: 3000,
-      }),
+      // NbDummyAuthStrategy.setup({
+      //   name: 'email',
+      //   delay: 3000,
+      // }),
+      NbPasswordAuthStrategy.setup({
+        name: 'pass',
+        token: {
+          class: NbAuthJWTToken,
+          key: 'token'
+        },
+        baseEndpoint: 'http://localhost:3000/api',
+        login: {
+          endpoint: '/login',
+          method: 'post',
+        },
+        register: {
+          endpoint: '/register',
+          method: 'post',
+        },
+      })
     ],
     forms: {
       login: {
-        socialLinks: socialLinks,
+        redirectDelay: 500, // delay before redirect after a successful login, while success message is shown to the user
+        strategy: 'pass',  // strategy id key.
+        rememberMe: true,   // whether to show or not the `rememberMe` checkbox
+        showMessages: {     // show/not show success/error messages
+          success: true,
+          error: true,
+        },
+        socialLinks: socialLinks, // social links at the bottom of a page
       },
       register: {
+        redirectDelay: 500,
+        strategy: 'pass',
+        showMessages: {
+          success: true,
+          error: true,
+        },
+        terms: true,
         socialLinks: socialLinks,
-      },
-    },
+      }
+    }
   }).providers,
 
   NbSecurityModule.forRoot({
